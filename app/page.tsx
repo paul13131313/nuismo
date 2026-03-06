@@ -16,7 +16,7 @@ const TIMER_OPTIONS = [3, 5, 10, 15]; // 分
 // 常駐NPCぬいぐるみ（誰もいなくても1体いる）
 const NPC: UserInfo = {
   id: "npc",
-  type: "medusa",
+  type: "usagi",
   posX: 30,
 };
 
@@ -159,7 +159,7 @@ export default function Home() {
   };
 
   // NPC + 他ユーザーを統合（NPCは自分と同じタイプなら別タイプに変更）
-  const npcType: NuigurumiType = myType === "medusa" ? "kuma" : "medusa";
+  const npcType: NuigurumiType = myType === "usagi" ? "kaeru" : "usagi";
   const allOthers = new Map(others);
   allOthers.set("npc", { ...NPC, type: npcType });
 
