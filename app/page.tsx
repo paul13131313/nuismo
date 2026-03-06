@@ -13,6 +13,13 @@ interface UserInfo {
 
 const TIMER_OPTIONS = [3, 5, 10, 15]; // 分
 
+// 常駐NPCぬいぐるみ（誰もいなくても1体いる）
+const NPC: UserInfo = {
+  id: "npc",
+  type: "medusa",
+  posX: 30,
+};
+
 export default function Home() {
   const [myType, setMyType] = useState<NuigurumiType>("usagi");
   const [myId, setMyId] = useState("");
@@ -122,15 +129,18 @@ export default function Home() {
     };
   }, [myId, myType]);
 
-  // 火を借りる
+  // 火を借りる（NPC含む全員が対象）
   const handleFireRequest = useCallback(() => {
-    if (others.size === 0 || !channelRef.current) return;
-    const otherIds = Array.from(others.keys());
-    const targetId = otherIds[Math.floor(Math.random() * otherIds.length)];
-    channelRef.current.publish("fire-request", {
-      fromId: myId,
-      targetId,
-    });
+    // allOthersはrenderごとに再計算されるので、othersとNPCから直接取得
+    const targetIds = [...Array.from(others.keys()), "npc"];
+    if (targetIds.length === 0) return;
+    const targetId = targetIds[Math.floor(Math.random() * targetIds.length)];
+    if (channelRef.current && targetId !== "npc") {
+      channelRef.current.publish("fire-request", {
+        fromId: myId,
+        targetId,
+      });
+    }
     setSlidingId(targetId);
     setTimeout(() => setSlidingId(null), 3000);
   }, [others, myId]);
@@ -148,17 +158,21 @@ export default function Home() {
     setTimerDone(false);
   };
 
+  // NPC + 他ユーザーを統合（NPCは自分と同じタイプなら別タイプに変更）
+  const npcType: NuigurumiType = myType === "medusa" ? "kuma" : "medusa";
+  const allOthers = new Map(others);
+  allOthers.set("npc", { ...NPC, type: npcType });
+
   // 自分が向く方向
   const shouldFlipSelf = (() => {
-    if (others.size === 0) return false;
-    const positions = Array.from(others.values()).map((u) => u.posX);
+    const positions = Array.from(allOthers.values()).map((u) => u.posX);
     const closest = positions.reduce((a, b) =>
       Math.abs(a - 50) < Math.abs(b - 50) ? a : b
     );
     return closest > 50;
   })();
 
-  const totalUsers = others.size + (connected ? 1 : 0);
+  const totalUsers = allOthers.size + (connected ? 1 : 0);
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
@@ -285,8 +299,8 @@ export default function Home() {
         )}
       </div>
 
-      {/* 他ユーザーのぬいぐるみ */}
-      {Array.from(others.values()).map((user) => (
+      {/* 他ユーザー + NPCのぬいぐるみ */}
+      {Array.from(allOthers.values()).map((user) => (
         <div
           key={user.id}
           className="absolute"
@@ -337,7 +351,7 @@ export default function Home() {
         {/* 火を借りるボタン */}
         <button
           onClick={handleFireRequest}
-          disabled={others.size === 0}
+          disabled={false}
           className="mt-4 px-5 py-2 rounded-full text-xs transition-opacity duration-300 cursor-pointer select-none backdrop-blur-sm"
           style={{
             background: "rgba(23,23,23,0.6)",
@@ -345,13 +359,13 @@ export default function Home() {
             border: "1px dashed rgba(255,194,155,0.4)",
             fontFamily: "var(--font-crimson-pro), serif",
             letterSpacing: "0.1em",
-            opacity: others.size === 0 ? 0.3 : 0.8,
+            opacity: 0.8,
           }}
           onMouseEnter={(e) => {
-            if (others.size > 0) e.currentTarget.style.opacity = "1";
+            e.currentTarget.style.opacity = "1";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = others.size === 0 ? "0.3" : "0.8";
+            e.currentTarget.style.opacity = "0.8";
           }}
         >
           火を借りる
