@@ -60,7 +60,7 @@ export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX
           alt={NUIGURUMI_LABELS[type]}
           width={120}
           height={180}
-          style={{ objectFit: "contain", height: "auto", maxHeight: "180px" }}
+          style={{ objectFit: "contain", height: "auto", maxHeight: "180px", border: "none", outline: "none", display: "block" }}
           priority={isSelf}
         />
       </div>
@@ -72,9 +72,9 @@ export const NUIGURUMI_TYPES: NuigurumiType[] = ["usagi", "kuma", "kaeru", "neko
 
 // デフォルトで右を向いているキャラ（タバコの向き基準）
 export const DEFAULT_FACES_RIGHT: Record<NuigurumiType, boolean> = {
-  usagi: true,
+  usagi: false,
   kuma: false,
-  kaeru: false,
+  kaeru: true,
   neko: false,
-  medusa: true,
+  medusa: false,
 };
