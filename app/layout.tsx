@@ -21,6 +21,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nuismo.vercel.app"),
   title: "ぬいすも",
   description: "ぬいぐるみたちの喫煙所",
   icons: {
