@@ -69,9 +69,9 @@ export const NUIGURUMI_TYPES: NuigurumiType[] = ["usagi", "kuma", "kaeru", "neko
 
 // デフォルトで右を向いているキャラ（タバコの向き基準）
 export const DEFAULT_FACES_RIGHT: Record<NuigurumiType, boolean> = {
-  usagi: false,
+  usagi: true,
   kuma: false,
-  kaeru: true,
+  kaeru: false,
   neko: false,
-  medusa: false,
+  medusa: true,
 };
