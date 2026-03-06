@@ -305,7 +305,7 @@ export default function Home() {
           key={user.id}
           className="absolute"
           style={{
-            bottom: "34%",
+            bottom: "38%",
             left: `${user.posX}%`,
             transform: "translateX(-50%)",
             animation: slidingId === user.id
@@ -322,18 +322,27 @@ export default function Home() {
         </div>
       ))}
 
-      {/* 自分のぬいぐるみ */}
+      {/* 自分のぬいぐるみ（他ユーザーと同じ水平線） */}
       <div
-        className="absolute flex flex-col items-center z-10"
+        className="absolute z-10"
         style={{
-          bottom: "28%",
+          bottom: "38%",
           left: "50%",
           transform: "translateX(-50%)",
         }}
       >
         <Nuigurumi type={myType} isSelf flipX={shouldFlipSelf} />
+      </div>
 
-        {/* 自分ラベル */}
+      {/* 自分ラベル + 火を借りるボタン */}
+      <div
+        className="absolute flex flex-col items-center z-10"
+        style={{
+          bottom: "25%",
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
         <div
           className="text-center select-none"
           style={{
@@ -341,18 +350,16 @@ export default function Home() {
             fontSize: "10px",
             fontFamily: "var(--font-crimson-pro), serif",
             letterSpacing: "0.1em",
-            marginTop: "2px",
             textShadow: "0 1px 3px rgba(0,0,0,0.4)",
           }}
         >
           you
         </div>
 
-        {/* 火を借りるボタン */}
         <button
           onClick={handleFireRequest}
           disabled={false}
-          className="mt-4 px-5 py-2 rounded-full text-xs transition-opacity duration-300 cursor-pointer select-none backdrop-blur-sm"
+          className="mt-3 px-5 py-2 rounded-full text-xs transition-opacity duration-300 cursor-pointer select-none backdrop-blur-sm"
           style={{
             background: "rgba(23,23,23,0.6)",
             color: "#FFF4ED",
