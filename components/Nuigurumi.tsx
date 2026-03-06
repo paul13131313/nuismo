@@ -47,19 +47,20 @@ export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX
       }}
     >
       {showSmoke && <Smoke delayOffset={smokeDelay} />}
-      <div
-        className={isSelf ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : ""}
-        style={{
-          transform: flipX ? "scaleX(-1)" : undefined,
-          animation: isSelf ? "idle-sway 6s ease-in-out infinite" : "idle-sway-2 7s ease-in-out infinite",
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={NUIGURUMI_IMAGES[type]}
-          alt={NUIGURUMI_LABELS[type]}
-          style={{ width: "120px", height: "auto", maxHeight: "180px", objectFit: "contain", display: "block", border: "none" }}
-        />
+      <div style={{ transform: flipX ? "scaleX(-1)" : undefined }}>
+        <div
+          className={isSelf ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : ""}
+          style={{
+            animation: isSelf ? "idle-sway 6s ease-in-out infinite" : "idle-sway-2 7s ease-in-out infinite",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={NUIGURUMI_IMAGES[type]}
+            alt={NUIGURUMI_LABELS[type]}
+            style={{ width: "120px", height: "auto", maxHeight: "180px", objectFit: "contain", display: "block", border: "none" }}
+          />
+        </div>
       </div>
     </div>
   );
