@@ -54,10 +54,12 @@ export default function Home() {
     };
   }, []);
 
-  // セッションID生成
+  // セッションID生成（NPCと被らないタイプを選ぶ）
   useEffect(() => {
     const id = crypto.randomUUID().slice(0, 8);
-    const type = NUIGURUMI_TYPES[Math.floor(Math.random() * NUIGURUMI_TYPES.length)];
+    const npcDefault = NPC.type;
+    const available = NUIGURUMI_TYPES.filter((t) => t !== npcDefault);
+    const type = available[Math.floor(Math.random() * available.length)];
     setMyId(id);
     setMyType(type);
   }, []);
