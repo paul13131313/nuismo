@@ -11,8 +11,6 @@ interface UserInfo {
   posX: number;
 }
 
-const TIMER_OPTIONS = [3, 5, 10, 15]; // 分
-
 // 常駐NPCぬいぐるみ（誰もいなくても1体いる）
 const NPC: UserInfo = {
   id: "npc",
@@ -27,13 +25,9 @@ export default function Home() {
   const [seconds, setSeconds] = useState(0);
   const [slidingId, setSlidingId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [fireDone, setFireDone] = useState(false);
   const channelRef = useRef<Ably.RealtimeChannel | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
-
-  // タイマー
-  const [timerRemaining, setTimerRemaining] = useState<number | null>(null); // 秒
-  const [timerPickerOpen, setTimerPickerOpen] = useState(false);
-  const [timerDone, setTimerDone] = useState(false);
 
   // セッションID生成
   useEffect(() => {
@@ -43,22 +37,10 @@ export default function Home() {
     setMyType(type);
   }, []);
 
-  // 滞在時間カウンター + タイマーカウントダウン
+  // 滞在時間カウンター
   useEffect(() => {
     const timer = setInterval(() => {
       setSeconds((s) => s + 1);
-      setTimerRemaining((prev) => {
-        if (prev === null) return null;
-        if (prev <= 1) {
-          // タイマー終了
-          setTimerDone(true);
-          if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-            navigator.vibrate([200, 100, 200, 100, 200]);
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -129,9 +111,9 @@ export default function Home() {
     };
   }, [myId, myType]);
 
-  // 火を借りる（NPC含む全員が対象）
+  // 火を借りる（1回だけ）
   const handleFireRequest = useCallback(() => {
-    // allOthersはrenderごとに再計算されるので、othersとNPCから直接取得
+    if (fireDone) return;
     const targetIds = [...Array.from(others.keys()), "npc"];
     if (targetIds.length === 0) return;
     const targetId = targetIds[Math.floor(Math.random() * targetIds.length)];
@@ -143,20 +125,8 @@ export default function Home() {
     }
     setSlidingId(targetId);
     setTimeout(() => setSlidingId(null), 3000);
-  }, [others, myId]);
-
-  // タイマーセット
-  const handleSetTimer = (min: number) => {
-    setTimerRemaining(min * 60);
-    setTimerPickerOpen(false);
-    setTimerDone(false);
-  };
-
-  const handleCancelTimer = () => {
-    setTimerRemaining(null);
-    setTimerPickerOpen(false);
-    setTimerDone(false);
-  };
+    setFireDone(true);
+  }, [others, myId, fireDone]);
 
   // NPC + 他ユーザーを統合（NPCは自分と同じタイプなら別タイプに変更）
   const npcType: NuigurumiType = myType === "usagi" ? "kaeru" : "usagi";
@@ -175,10 +145,6 @@ export default function Home() {
   const totalUsers = allOthers.size + (connected ? 1 : 0);
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
-
-  // タイマー表示
-  const timerMin = timerRemaining !== null ? Math.floor(timerRemaining / 60) : 0;
-  const timerSec = timerRemaining !== null ? timerRemaining % 60 : 0;
 
   return (
     <Room>
@@ -211,92 +177,6 @@ export default function Home() {
         style={{ color: "rgba(255,244,237,0.5)", fontSize: "10px", textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
       >
         {minutes}:{secs.toString().padStart(2, "0")}
-      </div>
-
-      {/* 休憩タイマー（右下） */}
-      <div className="absolute bottom-5 right-5 select-none z-20">
-        {timerDone ? (
-          /* タイマー終了 */
-          <button
-            onClick={handleCancelTimer}
-            className="px-3 py-1.5 rounded-full backdrop-blur-sm cursor-pointer"
-            style={{
-              background: "rgba(255,194,155,0.25)",
-              color: "#FFC29B",
-              border: "1px solid rgba(255,194,155,0.5)",
-              fontSize: "11px",
-              fontFamily: "var(--font-crimson-pro), serif",
-              animation: "timer-blink 1s ease-in-out infinite",
-              textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-            }}
-          >
-            もどろ
-          </button>
-        ) : timerRemaining !== null ? (
-          /* カウントダウン中 */
-          <button
-            onClick={handleCancelTimer}
-            className="px-3 py-1.5 rounded-full backdrop-blur-sm cursor-pointer"
-            style={{
-              background: "rgba(23,23,23,0.5)",
-              color: "#FFC29B",
-              border: "1px dashed rgba(255,194,155,0.3)",
-              fontSize: "11px",
-              fontFamily: "var(--font-crimson-pro), serif",
-              textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-            }}
-          >
-            {timerMin}:{timerSec.toString().padStart(2, "0")}
-          </button>
-        ) : timerPickerOpen ? (
-          /* タイマー選択 */
-          <div
-            className="flex gap-2 items-center rounded-full px-2 py-1 backdrop-blur-sm"
-            style={{ background: "rgba(23,23,23,0.6)", border: "1px dashed rgba(255,194,155,0.3)" }}
-          >
-            {TIMER_OPTIONS.map((m) => (
-              <button
-                key={m}
-                onClick={() => handleSetTimer(m)}
-                className="px-2 py-1 rounded-full cursor-pointer transition-colors"
-                style={{
-                  color: "#FFC29B",
-                  fontSize: "11px",
-                  fontFamily: "var(--font-crimson-pro), serif",
-                  background: "transparent",
-                  border: "none",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,194,155,0.15)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                {m}m
-              </button>
-            ))}
-            <button
-              onClick={() => setTimerPickerOpen(false)}
-              className="px-1 cursor-pointer"
-              style={{ color: "rgba(255,244,237,0.4)", fontSize: "11px", background: "transparent", border: "none" }}
-            >
-              ×
-            </button>
-          </div>
-        ) : (
-          /* タイマーボタン（デフォルト） */
-          <button
-            onClick={() => setTimerPickerOpen(true)}
-            className="px-3 py-1.5 rounded-full backdrop-blur-sm cursor-pointer"
-            style={{
-              background: "rgba(23,23,23,0.4)",
-              color: "rgba(255,244,237,0.5)",
-              border: "1px dashed rgba(255,194,155,0.2)",
-              fontSize: "10px",
-              fontFamily: "var(--font-crimson-pro), serif",
-              textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-            }}
-          >
-            timer
-          </button>
-        )}
       </div>
 
       {/* 他ユーザー + NPCのぬいぐるみ */}
@@ -356,27 +236,28 @@ export default function Home() {
           you
         </div>
 
-        <button
-          onClick={handleFireRequest}
-          disabled={false}
-          className="mt-3 px-5 py-2 rounded-full text-xs transition-opacity duration-300 cursor-pointer select-none backdrop-blur-sm"
-          style={{
-            background: "rgba(23,23,23,0.6)",
-            color: "#FFF4ED",
-            border: "1px dashed rgba(255,194,155,0.4)",
-            fontFamily: "var(--font-crimson-pro), serif",
-            letterSpacing: "0.1em",
-            opacity: 0.8,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "1";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "0.8";
-          }}
-        >
-          火を借りる
-        </button>
+        {!fireDone && (
+          <button
+            onClick={handleFireRequest}
+            className="mt-3 px-5 py-2 rounded-full text-xs transition-opacity duration-300 cursor-pointer select-none backdrop-blur-sm"
+            style={{
+              background: "rgba(23,23,23,0.6)",
+              color: "#FFF4ED",
+              border: "1px dashed rgba(255,194,155,0.4)",
+              fontFamily: "var(--font-crimson-pro), serif",
+              letterSpacing: "0.1em",
+              opacity: 0.8,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "1";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "0.8";
+            }}
+          >
+            火を借りる
+          </button>
+        )}
       </div>
     </Room>
   );
