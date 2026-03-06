@@ -272,19 +272,6 @@ export default function Home() {
           transform: "translateX(-50%)",
         }}
       >
-        <div
-          className="text-center select-none"
-          style={{
-            color: "#F5E6C8",
-            fontSize: "10px",
-            fontFamily: "var(--font-crimson-pro), serif",
-            letterSpacing: "0.1em",
-            textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-          }}
-        >
-          you
-        </div>
-
         {!fireDone && (
           <button
             onClick={handleFireRequest}
