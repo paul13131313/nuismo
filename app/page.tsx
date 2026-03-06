@@ -30,6 +30,29 @@ export default function Home() {
   const channelRef = useRef<Ably.RealtimeChannel | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
   const appearedIdsRef = useRef<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // BGM再生（ユーザー操作後に開始）
+  useEffect(() => {
+    const audio = new Audio("/assets/bgm.mp3");
+    audio.loop = true;
+    audio.volume = 0.3;
+    audioRef.current = audio;
+
+    const startBgm = () => {
+      audio.play().catch(() => {});
+      document.removeEventListener("click", startBgm);
+      document.removeEventListener("touchstart", startBgm);
+    };
+    document.addEventListener("click", startBgm);
+    document.addEventListener("touchstart", startBgm);
+
+    return () => {
+      audio.pause();
+      document.removeEventListener("click", startBgm);
+      document.removeEventListener("touchstart", startBgm);
+    };
+  }, []);
 
   // セッションID生成
   useEffect(() => {
