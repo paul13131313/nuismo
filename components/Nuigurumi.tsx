@@ -27,20 +27,27 @@ interface NuigurumiProps {
   sliding?: boolean;
   slideDirection?: number;
   flipX?: boolean;
+  isNew?: boolean;
+  smokeDelay?: number;
+  showSmoke?: boolean;
 }
 
-export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX }: NuigurumiProps) {
+export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX, isNew, smokeDelay = 0, showSmoke = true }: NuigurumiProps) {
+  const animation = sliding
+    ? "slide-closer 3s ease-in-out"
+    : isNew
+      ? "fade-in 1s ease-out forwards"
+      : undefined;
+
   return (
     <div
       className="relative flex flex-col items-center"
       style={{
-        animation: sliding
-          ? "slide-closer 3s ease-in-out forwards"
-          : "fade-in 1s ease-out forwards",
+        animation,
         ["--slide-x" as string]: `${slideDirection || 0}px`,
       }}
     >
-      <Smoke />
+      {showSmoke && <Smoke delayOffset={smokeDelay} />}
       <div
         className={isSelf ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"}
         style={{
@@ -62,3 +69,12 @@ export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX
 }
 
 export const NUIGURUMI_TYPES: NuigurumiType[] = ["usagi", "kuma", "kaeru", "neko", "medusa"];
+
+// デフォルトで右を向いているキャラ（タバコの向き基準）
+export const DEFAULT_FACES_RIGHT: Record<NuigurumiType, boolean> = {
+  usagi: true,
+  kuma: false,
+  kaeru: false,
+  neko: false,
+  medusa: true,
+};

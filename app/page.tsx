@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Ably from "ably";
 import Room from "@/components/Room";
-import Nuigurumi, { NUIGURUMI_TYPES, type NuigurumiType } from "@/components/Nuigurumi";
+import Nuigurumi, { NUIGURUMI_TYPES, DEFAULT_FACES_RIGHT, type NuigurumiType } from "@/components/Nuigurumi";
 
 interface UserInfo {
   id: string;
@@ -28,6 +28,7 @@ export default function Home() {
   const [fireDone, setFireDone] = useState(false);
   const channelRef = useRef<Ably.RealtimeChannel | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
+  const appearedIdsRef = useRef<Set<string>>(new Set());
 
   // セッションID生成
   useEffect(() => {
@@ -133,16 +134,25 @@ export default function Home() {
   const allOthers = new Map(others);
   allOthers.set("npc", { ...NPC, type: npcType });
 
-  // 自分が向く方向
+  // 向き判定ヘルパー：相手の方を向くためにflipが必要か
+  // デフォルト右向きのキャラが左を向く必要がある → flip
+  // デフォルト左向きのキャラが右を向く必要がある → flip
+  const selfPosX = 62;
+  const needsFlip = (type: NuigurumiType, myPosX: number, targetPosX: number) => {
+    const shouldFaceRight = targetPosX > myPosX;
+    const facesRight = DEFAULT_FACES_RIGHT[type];
+    return facesRight !== shouldFaceRight;
+  };
+
   const shouldFlipSelf = (() => {
     const positions = Array.from(allOthers.values()).map((u) => u.posX);
+    if (positions.length === 0) return false;
     const closest = positions.reduce((a, b) =>
-      Math.abs(a - 50) < Math.abs(b - 50) ? a : b
+      Math.abs(a - selfPosX) < Math.abs(b - selfPosX) ? a : b
     );
-    return closest > 50;
+    return needsFlip(myType, selfPosX, closest);
   })();
 
-  const totalUsers = allOthers.size + (connected ? 1 : 0);
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
@@ -163,70 +173,78 @@ export default function Home() {
         nuismo
       </div>
 
-      {/* 同時接続数 */}
+      {/* 滞在時間（右下） */}
       <div
-        className="absolute top-5 right-5 select-none z-10"
-        style={{ color: "#FFC29B", fontSize: "16px", fontFamily: "var(--font-crimson-pro), serif", letterSpacing: "0.15em", lineHeight: "18px", paddingTop: "2px", textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}
-      >
-        {totalUsers}<span style={{ fontSize: "13px" }}>人</span>
-      </div>
-
-      {/* 滞在時間（左下） */}
-      <div
-        className="absolute bottom-5 left-5 select-none z-10"
-        style={{ color: "rgba(255,244,237,0.5)", fontSize: "10px", textShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
+        className="absolute bottom-5 right-5 select-none z-10"
+        style={{
+          color: "rgba(255,244,237,0.5)",
+          fontSize: "13px",
+          fontFamily: "var(--font-crimson-pro), serif",
+          letterSpacing: "0.05em",
+          textShadow: "0 1px 3px rgba(0,0,0,0.4)",
+        }}
       >
         {minutes}:{secs.toString().padStart(2, "0")}
       </div>
 
       {/* 他ユーザー + NPCのぬいぐるみ */}
-      {Array.from(allOthers.values()).map((user) => (
-        <div
-          key={user.id}
-          className="absolute"
-          style={{
-            bottom: "38%",
-            left: `${user.posX}%`,
-            transform: "translateX(-50%)",
-            animation: slidingId === user.id
-              ? undefined
-              : "fade-in 1s ease-out",
-          }}
-        >
-          <Nuigurumi
-            type={user.type}
-            sliding={slidingId === user.id}
-            slideDirection={user.posX > 50 ? -40 : 40}
-            flipX={user.posX > 50}
-          />
-        </div>
-      ))}
+      {Array.from(allOthers.values()).map((user) => {
+        const isNew = !appearedIdsRef.current.has(user.id);
+        if (isNew) appearedIdsRef.current.add(user.id);
+        const isSliding = slidingId === user.id;
+
+        return (
+          <div
+            key={user.id}
+            className="absolute"
+            style={{
+              bottom: "38%",
+              left: `${user.posX}%`,
+              transform: "translateX(-50%)",
+              animation: isSliding
+                ? undefined
+                : isNew
+                  ? "fade-in 1s ease-out"
+                  : undefined,
+            }}
+          >
+            <Nuigurumi
+              type={user.type}
+              sliding={isSliding}
+              slideDirection={user.posX > selfPosX ? -35 : 35}
+              flipX={needsFlip(user.type, user.posX, selfPosX)}
+              isNew={isNew}
+              smokeDelay={user.id === "npc" ? 2.5 : (user.posX % 3)}
+            />
+          </div>
+        );
+      })}
 
       {/* 自分のぬいぐるみ（他ユーザーと同じ水平線） */}
       <div
         className="absolute z-10"
         style={{
           bottom: "38%",
-          left: "50%",
+          left: "62%",
           transform: "translateX(-50%)",
         }}
       >
-        <Nuigurumi type={myType} isSelf flipX={shouldFlipSelf} />
+        <Nuigurumi type={myType} isSelf flipX={shouldFlipSelf} isNew showSmoke={fireDone} />
       </div>
 
       {/* 自分ラベル + 火を借りるボタン */}
       <div
         className="absolute flex flex-col items-center z-10"
         style={{
-          bottom: "25%",
-          left: "50%",
+          bottom: "30%",
+          left: "62%",
           transform: "translateX(-50%)",
         }}
       >
         <div
           className="text-center select-none"
           style={{
-            color: "#FFC29B",
+            color: "#F5E6C8",
             fontSize: "10px",
             fontFamily: "var(--font-crimson-pro), serif",
             letterSpacing: "0.1em",

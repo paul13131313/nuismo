@@ -1,39 +1,43 @@
 "use client";
 
-export default function Smoke() {
+interface SmokeProps {
+  delayOffset?: number;
+}
+
+export default function Smoke({ delayOffset = 0 }: SmokeProps) {
   return (
-    <div className="absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none">
+    <div className="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none" style={{ mixBlendMode: "multiply" }}>
       <div
         className="absolute rounded-full"
         style={{
-          width: "8px",
-          height: "8px",
-          background: "rgba(220, 220, 220, 0.5)",
-          filter: "blur(5px)",
-          animation: "smoke-rise 5s ease-out infinite",
+          width: "22px",
+          height: "22px",
+          background: "rgba(180, 175, 170, 0.9)",
+          filter: "blur(6px)",
+          animation: `smoke-rise 4.5s ease-out infinite ${delayOffset}s`,
           left: "0px",
         }}
       />
       <div
         className="absolute rounded-full"
         style={{
-          width: "6px",
-          height: "6px",
-          background: "rgba(220, 220, 220, 0.4)",
-          filter: "blur(6px)",
-          animation: "smoke-rise-2 6s ease-out infinite 1.2s",
-          left: "5px",
+          width: "18px",
+          height: "18px",
+          background: "rgba(180, 175, 170, 0.8)",
+          filter: "blur(7px)",
+          animation: `smoke-rise-2 5.5s ease-out infinite ${delayOffset + 1}s`,
+          left: "8px",
         }}
       />
       <div
         className="absolute rounded-full"
         style={{
-          width: "7px",
-          height: "7px",
-          background: "rgba(220, 220, 220, 0.35)",
-          filter: "blur(4px)",
-          animation: "smoke-rise-3 7s ease-out infinite 2.5s",
-          left: "-4px",
+          width: "20px",
+          height: "20px",
+          background: "rgba(180, 175, 170, 0.75)",
+          filter: "blur(6px)",
+          animation: `smoke-rise-3 6s ease-out infinite ${delayOffset + 2}s`,
+          left: "-7px",
         }}
       />
     </div>
