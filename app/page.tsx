@@ -244,7 +244,7 @@ export default function Home() {
       <div
         className="absolute flex flex-col items-center z-10"
         style={{
-          bottom: "34%",
+          bottom: "30%",
           left: "62%",
           transform: "translateX(-50%)",
         }}

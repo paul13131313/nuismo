@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Smoke from "./Smoke";
 
 export type NuigurumiType = "usagi" | "kuma" | "kaeru" | "neko" | "medusa";
@@ -55,13 +54,11 @@ export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX
           animation: isSelf ? "idle-sway 6s ease-in-out infinite" : "idle-sway-2 7s ease-in-out infinite",
         }}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={NUIGURUMI_IMAGES[type]}
           alt={NUIGURUMI_LABELS[type]}
-          width={120}
-          height={180}
-          style={{ objectFit: "contain", height: "auto", maxHeight: "180px", border: "none", outline: "none", display: "block" }}
-          priority={isSelf}
+          style={{ width: "120px", height: "auto", maxHeight: "180px", objectFit: "contain", display: "block", border: "none" }}
         />
       </div>
     </div>
@@ -72,9 +69,9 @@ export const NUIGURUMI_TYPES: NuigurumiType[] = ["usagi", "kuma", "kaeru", "neko
 
 // デフォルトで右を向いているキャラ（タバコの向き基準）
 export const DEFAULT_FACES_RIGHT: Record<NuigurumiType, boolean> = {
-  usagi: false,
+  usagi: true,
   kuma: false,
-  kaeru: true,
+  kaeru: false,
   neko: false,
-  medusa: false,
+  medusa: true,
 };
