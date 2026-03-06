@@ -49,7 +49,7 @@ export default function Nuigurumi({ type, isSelf, sliding, slideDirection, flipX
     >
       {showSmoke && <Smoke delayOffset={smokeDelay} />}
       <div
-        className={isSelf ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"}
+        className={isSelf ? "drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]" : ""}
         style={{
           transform: flipX ? "scaleX(-1)" : undefined,
           animation: isSelf ? "idle-sway 6s ease-in-out infinite" : "idle-sway-2 7s ease-in-out infinite",

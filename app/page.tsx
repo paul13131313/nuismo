@@ -26,6 +26,7 @@ export default function Home() {
   const [slidingId, setSlidingId] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [fireDone, setFireDone] = useState(false);
+  const [smokingStarted, setSmokingStarted] = useState(false);
   const channelRef = useRef<Ably.RealtimeChannel | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
   const appearedIdsRef = useRef<Set<string>>(new Set());
@@ -38,13 +39,14 @@ export default function Home() {
     setMyType(type);
   }, []);
 
-  // 滞在時間カウンター
+  // 滞在時間カウンター（煙を借りてからスタート）
   useEffect(() => {
+    if (!smokingStarted) return;
     const timer = setInterval(() => {
       setSeconds((s) => s + 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [smokingStarted]);
 
   // Ably接続
   useEffect(() => {
@@ -125,7 +127,10 @@ export default function Home() {
       });
     }
     setSlidingId(targetId);
-    setTimeout(() => setSlidingId(null), 3000);
+    setTimeout(() => {
+      setSlidingId(null);
+      setSmokingStarted(true);
+    }, 3000);
     setFireDone(true);
   }, [others, myId, fireDone]);
 
@@ -173,19 +178,22 @@ export default function Home() {
         nuismo
       </div>
 
-      {/* 滞在時間（右下） */}
-      <div
-        className="absolute bottom-5 right-5 select-none z-10"
-        style={{
-          color: "rgba(255,244,237,0.5)",
-          fontSize: "13px",
-          fontFamily: "var(--font-crimson-pro), serif",
-          letterSpacing: "0.05em",
-          textShadow: "0 1px 3px rgba(0,0,0,0.4)",
-        }}
-      >
-        {minutes}:{secs.toString().padStart(2, "0")}
-      </div>
+      {/* 滞在時間（右下・煙を借りてから表示） */}
+      {smokingStarted && (
+        <div
+          className="absolute bottom-5 right-5 select-none z-10"
+          style={{
+            color: "rgba(255,244,237,0.5)",
+            fontSize: "13px",
+            fontFamily: "var(--font-crimson-pro), serif",
+            letterSpacing: "0.05em",
+            textShadow: "0 1px 3px rgba(0,0,0,0.4)",
+            animation: "fade-in 1s ease-out",
+          }}
+        >
+          {minutes}:{secs.toString().padStart(2, "0")}
+        </div>
+      )}
 
       {/* 他ユーザー + NPCのぬいぐるみ */}
       {Array.from(allOthers.values()).map((user) => {
@@ -229,7 +237,7 @@ export default function Home() {
           transform: "translateX(-50%)",
         }}
       >
-        <Nuigurumi type={myType} isSelf flipX={shouldFlipSelf} isNew showSmoke={fireDone} />
+        <Nuigurumi type={myType} isSelf flipX={shouldFlipSelf} isNew showSmoke={smokingStarted} />
       </div>
 
       {/* 自分ラベル + 火を借りるボタン */}
