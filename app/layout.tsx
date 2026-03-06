@@ -32,13 +32,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ぬいすも",
     description: "ぬいぐるみたちの喫煙所",
-    images: [{ url: "/ogp.png", width: 1200, height: 630 }],
+    images: [{ url: "/ogp2.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ぬいすも",
     description: "ぬいぐるみたちの喫煙所",
-    images: ["/ogp.png"],
+    images: ["/ogp2.png"],
   },
 };
 
